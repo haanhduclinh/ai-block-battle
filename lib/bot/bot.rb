@@ -1,71 +1,71 @@
 class Bot
-  attr_accessor :formatter, :state, :settings
+  attr_accessor :state
 
   def initialize
     @state = State.new
-    @formatter = Formatter.new
-    @settings = Settings.new
+    @state.settings = Settings.new
   end
 
-  def run
-    while (line = gets) # reads lines from stdin
-      line.chomp == '' || parse(line.chomp) # parses each non-empty line
+  def run(input = '')
+    $stdout.sync = true
+
+    read_engine_messages(input) do |line|
+      parse(line.chomp) unless line.chomp.empty?
     end
-    run # re-launches listener
   end
 
   private
 
+  def read_engine_messages(input)
+    return unless block_given?
+
+    if input.empty?
+      # reads lines from engine
+      while (line = gets)
+        yield(line)
+      end
+    else
+      input.each_line do |line|
+        yield(line)
+      end
+    end
+  end
+
   def parse(line)
-    formatted_line = @formatter.format_input(line)
+    formatted_line = Formatter.format_input(line)
     case formatted_line.shift
     when 'action'
-      game = Game.new(@settings, @state)
+      game = Game.new(@state)
       game.caculate_next_action
     when 'settings'
       update_setting(formatted_line)
     when 'update'
-      update_case(formatted_line)
+      update_game(formatted_line)
     when 'quit'
-      exit(true) # stops running if 'quit'
+      exit(true)
     end
   end
 
   def update_setting(formatted_line)
-    case formatted_line.shift
-    when 'your_bot'
-      @settings.your_players = formatted_line
-    when 'field_height'
-      @settings.set_height(formatted_line)
-    when 'field_width'
-      @settings.set_width(formatted_line)
-    when 'player_names'
-      @settings.set_players(formatted_line[0], formatted_line[1])
-    when 'timebank'
-      @settings.set_timebank(formatted_line)
-    when 'time_per_move'
-      @settings.set_time_move(formatted_line)
-    end
-  end
+    setting_attr = formatted_line.shift
+    setting_value = formatted_line.size == 1 ? formatted_line[0] : formatted_line
+    @state.settings.send("#{setting_attr}=", setting_value)
 
-  def update_case(formatted_line)
-    case formatted_line.shift
-    when 'game'
-      update_game(formatted_line)
-    when @settings.your_players
-      @state.map = formatted_line if formatted_line.shift == 'field'
-    end
-
+    return unless setting_attr == 'player_names'
+    @state.players = setting_value.map { |id| Player.new(id) }
   end
 
   def update_game(formatted_line)
-    case formatted_line.shift
-    when 'this_piece_type'
-      @state.current_type = formatted_line
-    when 'next_piece_type'
-      @state.next_type = formatted_line
-    when 'this_piece_position'
-      @state.current_type_start = formatted_line
+    update_kind = formatted_line.shift
+    state_attr = formatted_line.shift
+    state_value = formatted_line.size == 1 ? formatted_line[0] : formatted_line
+
+    if update_kind == 'game'
+      @state.send("#{state_attr}=", state_value)
+    else
+      player_id = update_kind
+      player = @state.player(player_id)
+      player.send("#{state_attr}=", state_value)
     end
   end
 end

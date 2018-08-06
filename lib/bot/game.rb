@@ -1,13 +1,13 @@
 class Game
-  attr_accessor :settings, :state, :action
-  def initialize(settings, current_state)
-    @settings = settings
+  attr_accessor :state, :action
+
+  def initialize(current_state)
     @state = current_state
     @action = Command.new
   end
 
   def caculate_next_action
-    case @state.current_type.first
+    case @state.this_piece_type
     when I
       @action.random
     when J
