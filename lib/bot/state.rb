@@ -1,8 +1,10 @@
 class State
-  attr_accessor :map, :current_type, :next_type, :current_type_start
+  attr_accessor :round, :this_piece_type, :next_piece_type, :this_piece_position
+  attr_accessor :players
+  attr_accessor :settings
 
-  def parse_map
-    map.reverse.split(";")
+  def my_player
+    player(settings.your_bot)
   end
 
   def convert_to_matrix
@@ -17,5 +19,9 @@ class State
     end
 
     score
+  end
+
+  def player(player_id)
+    players.detect { |player| player.id == player_id }
   end
 end

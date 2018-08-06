@@ -22,6 +22,6 @@ class Command
   end
 
   def random
-    puts ACTIONS.sample
+    puts ACTIONS.sample(Random.rand(1..5)).join(",")
   end
 end
