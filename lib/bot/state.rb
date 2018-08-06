@@ -7,14 +7,14 @@ class State
     player(settings.your_bot)
   end
 
-  def convert_to_matrix
-    parse_map.split(";").map{ |x| x.split(",").map(&:to_i) }
+  def convert_to_matrix(display_view = true)
+    display_array = display_view ? my_player.field : my_player.field.reverse
+    display_array.map {|rows| rows.map(&:to_i) }
   end
 
-  def current_score
-    map = parse_map
+  def current_score(display_view = false)
     score = 0
-    convert_to_matrix.each_with_index do |row, index|
+    convert_to_matrix(display_view).each_with_index do |row, index|
       score += index * (row.reduce(&:+))
     end
 
