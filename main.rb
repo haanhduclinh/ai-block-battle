@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-
+require 'pry'
 require_relative 'lib/bot/constant_define'
 require_relative 'lib/bot/command'
 require_relative 'lib/bot/formatter'

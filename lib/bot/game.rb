@@ -41,14 +41,14 @@ class Game
     current_pos_x, current_pos_y = @state.this_piece_position.split(",").map(&:to_i)
 
     move_x_commands = if x > current_pos_x
-                        "left"
-                      else
                         "right"
+                      else
+                        "left"
                       end
 
     (x - current_pos_x).abs.times { commands << move_x_commands }
 
-    commands
+    commands << "drop"
     puts commands.join(",")
   end
 
@@ -59,8 +59,9 @@ class Game
     possible_pos.each do |ability|
       key = ability.join("_")
       map_combine = combine_map(character_matrix, map_for_caculate, ability)
-      result[key.to_sym] = caculate_score_on_map(map_combine)
+      result[key] = caculate_score_on_map(map_combine)
     end
+
     result.sort_by(&:last).first
   end
 
