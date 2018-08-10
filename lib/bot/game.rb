@@ -1,13 +1,15 @@
 class Game
-  attr_accessor :state, :action
+  attr_accessor :state, :action, :game_matrix, :flip
 
   def initialize(current_state)
     @state = current_state
     @action = Command.new
+    @game_matrix = GameMatrix.new
+    @flip = Flip.new
   end
 
   def caculate_next_action
-    character_matrix = I
+    character_matrix = I_MATRIX
 
     case @state.this_piece_type
     when I
@@ -55,46 +57,52 @@ class Game
   def find_land(character_matrix)
     result = {}
     map_for_caculate = @state.convert_to_matrix(false)
-    possible_pos = find_suitable_pos(map_for_caculate)
+    possible_pos = find_suitable_pos(map_for_caculate, character_matrix)
+    binding.pry
+
     possible_pos.each do |ability|
-      key = ability.join("_")
-      map_combine = combine_map(character_matrix, map_for_caculate, ability)
-      result[key] = caculate_score_on_map(map_combine)
+      @game_matrix.matrix_after_land(original_matrix, character_matrix, ability)
     end
 
     result.sort_by(&:last).first
   end
 
-  def caculate_score_on_map(map_for_caculate)
-    score = 0
-    map_for_caculate.each_with_index do |row, index|
-      score += index * (row.reduce(&:+))
-    end
-
-    score
-  end
-
-  def find_suitable_pos(map_for_caculate)
+  def find_suitable_pos(map_for_caculate, character_matrix)
     result = []
-    max_height = @state.settings.field_width.to_i - 1
-    max_width = @state.settings.field_height.to_i - 1
 
-    (0..max_height).each do |x|
-      (0..max_width).each do |y|
-        result << [x, y] if validate?(x, y, map_for_caculate)
-      end
-    end
+    result << {
+      type: NORMAL_TYPE,
+      pos: @game_matrix.landable_pos(map_for_caculate, character_matrix)
+    }
+
+    character_90 = @flip.rotate_90(character_matrix)
+    result << {
+      type: FLIP_90_TYPE,
+      pos: @game_matrix.landable_pos(map_for_caculate, character_90)
+    }
+
+    character_180 = @flip.rotate_180(character_matrix)
+    result << {
+      type: FLIP_180_TYPE,
+      pos: @game_matrix.landable_pos(map_for_caculate, character_180)
+    }
+
+    character_270 = @flip.rotate_180(character_matrix)
+    result << {
+      type: FLIP_270_TYPE,
+      pos: @game_matrix.landable_pos(map_for_caculate, character_180)
+    }
 
     result
   end
 
   def validate?(x, y, map)
     sum = 0
-    sum += map[y][x]
+    sum += map[x][y]
 
-    while y < @state.settings.field_height.to_i - 1 do
-      sum += map[y][x]
-      y += 1
+    while x < @state.settings.field_height.to_i - 1 do
+      sum += map[x][y]
+      x += 1
     end
 
     sum.zero?

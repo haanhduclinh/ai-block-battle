@@ -8,7 +8,7 @@ class State
   end
 
   def convert_to_matrix(display_view = true)
-    display_array = display_view ? my_player.field : my_player.field.reverse
+    display_array = display_view ? my_player.field.reverse : my_player.field
     display_array.map {|rows| rows.map(&:to_i) }
   end
 

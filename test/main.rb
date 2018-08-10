@@ -8,6 +8,7 @@ require_relative '../lib/bot/state'
 require_relative '../lib/bot/settings'
 require_relative '../lib/bot/bot'
 require_relative '../lib/bot/player'
+require 'matrix'
 require 'pry'
 
 def test_data
