@@ -1,5 +1,5 @@
 class Game
-  attr_accessor :state, :action, :game_matrix, :flip
+  attr_accessor :state, :action, :game_matrix, :flip, :current_character
 
   def initialize(current_state)
     @state = current_state
@@ -11,100 +11,126 @@ class Game
   def caculate_next_action
     case @state.this_piece_type
     when I
-      pos = find_land(I_MATRIX)
-      do__action(pos)
+      @current_character = I_MATRIX
+      pos = find_land(@current_character)
+      do_action(pos, I)
     when J
-      pos = find_land(J_MATRIX)
-      do__action(pos)
+      @current_character = J_MATRIX
+      pos = find_land(@current_character)
+      do_action(pos, J)
     when L
-      pos = find_land(L_MATRIX)
-      do__action(pos)
+      @current_character = L_MATRIX
+      pos = find_land(@current_character)
+      do_action(pos, L)
     when O
-      pos = find_land(O_MATRIX)
-      do__action(pos)
+      @current_character = O_MATRIX
+      pos = find_land(@current_character)
+      do_action(pos, O)
     when S
-      pos = find_land(S_MATRIX)
-      do__action(pos)
+      @current_character = S_MATRIX
+      pos = find_land(@current_character)
+      do_action(pos, S)
     when T
-      pos = find_land(T_MATRIX)
-      do__action(pos)
+      @current_character = T_MATRIX
+      pos = find_land(@current_character)
+      do_action(pos, T)
     when Z
-      pos = find_land(Z_MATRIX)
-      do__action(pos)
+      @current_character = Z_MATRIX
+      pos = find_land(@current_character)
+      do_action(pos, Z)
     end
   end
 
-  def move_to(x, y)
+  def go_to(x, y, special = false)
+    # special ability to turnleft or turn right at last line
     commands = []
     current_pos_x, current_pos_y = @state.this_piece_position.split(",").map(&:to_i)
 
-    move_x_commands = if x > current_pos_x
-                        "right"
-                      else
-                        "left"
-                      end
+    field_height = @state.settings.field_height.to_i - 1
+    field_width = @state.settings.field_width.to_i - 1
 
-    (x - current_pos_x).abs.times { commands << move_x_commands }
+    while x > current_pos_x && current_pos_x + @current_character.size <= field_width do
+      commands << RIGHT
+      current_pos_x += 1
+    end
 
-    commands << "drop"
+    while x < current_pos_x && current_pos_x - @current_character.size >= 0 do
+      commands << LEFT
+      current_pos_x -= 1
+    end
+
+    while y > current_pos_y && current_pos_y - @current_character.size <= field_height do
+      commands << DOWN
+      current_pos_y += 1
+    end
+
     commands
   end
 
   def find_land(character_matrix)
     result = {}
-    map_for_caculate = @state.convert_to_matrix(false)
-    possible_pos = find_suitable_pos(map_for_caculate, character_matrix)
-    
+    possible_pos = find_suitable_pos
+  binding.pry
     possible_pos.sort_by {|x| x[:pos].last }.first
   end
 
-  def do__action(pos)
+  def do_action(pos, character)
     # {:type=>1, :pos=>["[0, 2]", 68]}
     commands = []
-    target_x, target_y = pos[:pos].first.split(",").map(&:to_i)
+    binding.pry
+    target_x, target_y = x_y_caculate_to_realmap(pos[:pos].first.split(",").map(&:to_i))
 
     case pos[:type]
     when NORMAL_TYPE
-      commands += move_to(target_x, target_y)
+      commands += go_to(target_x, target_y)
     when FLIP_90_TYPE
       commands << "turnright"
-      commands += move_to(target_x, target_y)
+      commands += go_to(target_x, target_y)
     when FLIP_180_TYPE
       commands << "turnright"
       commands << "turnright"
-      commands += move_to(target_x, target_y)
+      commands += go_to(target_x, target_y)
     when FLIP_270_TYPE
       commands << "turnleft"
-      commands += move_to(target_x, target_y)
+      commands += go_to(target_x, target_y)
     end
 
     puts commands.join(",")
   end
 
-  def find_suitable_pos(map_for_caculate, character_matrix)
+  def x_y_caculate_to_realmap(x_y_caculate_map)
+    caculate_y, caculate_x = x_y_caculate_map
+
+    field_height = @state.settings.field_height.to_i - 1
+    field_width = @state.settings.field_width.to_i - 1
+
+    [field_width - caculate_x, field_height - caculate_y]
+  end
+
+  def find_suitable_pos
     result = []
 
     result << {
       type: NORMAL_TYPE,
-      pos: @game_matrix.landable_pos(map_for_caculate, character_matrix)
+      pos: @game_matrix.landable_pos(@state.current_map, @current_character)
     }
 
-    character_90 = @flip.rotate_90(character_matrix)
+    character_90 = @flip.rotate_90(@current_character)
     result << {
       type: FLIP_90_TYPE,
-      pos: @game_matrix.landable_pos(map_for_caculate, character_90)
+      pos: @game_matrix.landable_pos(@state.current_map, character_90)
     }
 
-    character_180 = @flip.rotate_180(character_matrix)
+    character_180 = @flip.rotate_180(@current_character)
     result << {
       type: FLIP_180_TYPE,
-      pos: @game_matrix.landable_pos(map_for_caculate, character_180)
+      pos: @game_matrix.landable_pos(@state.current_map, character_180)
     }
 
-    character_270 = @flip.rotate_180(character_matrix)
+    character_270 = @flip.rotate_180(@current_character)
     result << {
       type: FLIP_270_TYPE,
-      pos: @game_matrix.landable_pos(map_for_caculate, character_180)
+      pos: @game_matrix.landable_pos(@state.current_map, character_180)
     }
 
     result

@@ -52,3 +52,15 @@ Z_MATRIX = [
   [0, 1, 1],
   [0, 0, 0]
 ]
+
+LEFT = "left"
+RIGHT = "right"
+DOWN = "down"
+DROP = "drop"
+TURN_LEFT = "turnleft"
+TURN_RIGHT = "turnright"
+
+
+
+
+

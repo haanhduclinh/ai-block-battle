@@ -14,10 +14,10 @@ class TestGameMatrix < Test::Unit::TestCase
       [0, 0, 0, 0],
       [0, 1, 0, 0],
       [0, 0, 0, 0],
-      [0, 0, 0, 0]
+      [1, 0, 0, 0]
     ]
 
-    response = @matrix.build_matrix_from_start_point(input_matrix, [0,0], [2,2])
+    response = @matrix.build_matrix_from_start_point(input_matrix, [0,1], [2,2])
     expect = [[0, 0], [0, 1]]
     assert_equal(response, expect, "not same")
   end
