@@ -68,7 +68,7 @@ class GameMatrix
       smaller_matrix = Matrix[*build_matrix_from_start_point(original_matrix, check, matrix_size)]
       new_matrix = Matrix[*character_matrix] + smaller_matrix
 
-      results[check.to_s] = caculate_score(original_matrix, character_matrix, check) if valid_matrix?(new_matrix)
+      results[check.join(",")] = caculate_score(original_matrix, character_matrix, check) if valid_matrix?(new_matrix)
     end
 
     results.sort_by(&:last).first
@@ -112,7 +112,6 @@ class GameMatrix
   end
 
   def caculate_score_on_map(map_for_caculate)
-    binding.pry
     score = 0
     map_for_caculate.each_with_index do |row, index|
       score += (index + 1) * (row.reduce(&:+))

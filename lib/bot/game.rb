@@ -9,33 +9,29 @@ class Game
   end
 
   def caculate_next_action
-    character_matrix = I_MATRIX
-
     case @state.this_piece_type
     when I
-      pos = find_land(character_matrix)
-      x, y = pos.first.to_s.split("_").map(&:to_i)
+      pos = find_land(I_MATRIX)
+      do__action(pos)
     when J
-      pos = find_land(character_matrix)
-      x, y = pos.first.to_s.split("_").map(&:to_i)
+      pos = find_land(J_MATRIX)
+      do__action(pos)
     when L
-      pos = find_land(character_matrix)
-      x, y = pos.first.to_s.split("_").map(&:to_i)
+      pos = find_land(L_MATRIX)
+      do__action(pos)
     when O
-      pos = find_land(character_matrix)
-      x, y = pos.first.to_s.split("_").map(&:to_i)
+      pos = find_land(O_MATRIX)
+      do__action(pos)
     when S
-      pos = find_land(character_matrix)
-      x, y = pos.first.to_s.split("_").map(&:to_i)
+      pos = find_land(S_MATRIX)
+      do__action(pos)
     when T
-      pos = find_land(character_matrix)
-      x, y = pos.first.to_s.split("_").map(&:to_i)
+      pos = find_land(T_MATRIX)
+      do__action(pos)
     when Z
-      pos = find_land(character_matrix)
-      x, y = pos.first.to_s.split("_").map(&:to_i)
+      pos = find_land(Z_MATRIX)
+      do__action(pos)
     end
-
-    move_to(x, y)
   end
 
   def move_to(x, y)
@@ -51,20 +47,38 @@ class Game
     (x - current_pos_x).abs.times { commands << move_x_commands }
 
     commands << "drop"
-    puts commands.join(",")
+    commands
   end
 
   def find_land(character_matrix)
     result = {}
     map_for_caculate = @state.convert_to_matrix(false)
     possible_pos = find_suitable_pos(map_for_caculate, character_matrix)
-    binding.pry
+    
+    possible_pos.sort_by {|x| x[:pos].last }.first
+  end
 
-    possible_pos.each do |ability|
-      @game_matrix.matrix_after_land(original_matrix, character_matrix, ability)
+  def do__action(pos)
+    # {:type=>1, :pos=>["[0, 2]", 68]}
+    commands = []
+    target_x, target_y = pos[:pos].first.split(",").map(&:to_i)
+
+    case pos[:type]
+    when NORMAL_TYPE
+      commands += move_to(target_x, target_y)
+    when FLIP_90_TYPE
+      commands << "turnright"
+      commands += move_to(target_x, target_y)
+    when FLIP_180_TYPE
+      commands << "turnright"
+      commands << "turnright"
+      commands += move_to(target_x, target_y)
+    when FLIP_270_TYPE
+      commands << "turnleft"
+      commands += move_to(target_x, target_y)
     end
 
-    result.sort_by(&:last).first
+    puts commands.join(",")
   end
 
   def find_suitable_pos(map_for_caculate, character_matrix)
