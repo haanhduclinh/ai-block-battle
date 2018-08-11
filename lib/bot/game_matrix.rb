@@ -60,6 +60,41 @@ class GameMatrix
     result
   end
 
+  def bonus(original_matrix, character_matrix, check)
+    current_matrix_score = caculate_bonus_score(original_matrix)
+
+    map_for_caculate = matrix_after_land(original_matrix, character_matrix, check)
+    new_matrix_score = caculate_bonus_score(map_for_caculate)
+    near_border_score = ((original_matrix.first.size / 2) - check.first + character_matrix.size).abs * BORDER_SCORE
+
+    (new_matrix_score - current_matrix_score) * SCORE_BONUS + near_border_score
+  end
+
+  def caculate_bonus_score(original_matrix)
+    score = 0
+    max_y_index = original_matrix.size - 1
+    max_x_index = original_matrix.first.size - 1
+
+    (0..max_y_index).each do |y|
+      (0..max_x_index).each do |x|
+        next if x + 1 > max_x_index
+        next if y + 1 > max_y_index
+        next if y - 1 < 0
+        next if x - 1 < 0
+
+        if original_matrix[y][x] == 1 && original_matrix[x + 1] == 1 && original_matrix[y + 1][x] == 1 && original_matrix[y - 1][x] == 1 && original_matrix[y][x - 1] == 1
+          score += 4
+        elsif original_matrix[y][x] == 1 && original_matrix[x + 1] == 1 && original_matrix[y + 1][x] == 1
+          score += 3
+        elsif original_matrix[y][x] == 1 && original_matrix[x + 1] == 1
+          score += 2
+        end
+      end
+    end
+
+    score
+  end
+
   def landable_pos(original_matrix, character_matrix)
     size_x = character_matrix.first.size
     size_y = character_matrix.size
@@ -73,7 +108,7 @@ class GameMatrix
       smaller_matrix = Matrix[*build_matrix_from_start_point(original_matrix, check, matrix_size)]
       new_matrix = Matrix[*character_matrix] + normalize_matrix(smaller_matrix.to_a)
 
-      results[check.join(",")] = caculate_score(original_matrix, character_matrix, check) if valid_matrix?(new_matrix)
+      results[check.join(",")] = caculate_score(original_matrix, character_matrix, check) + bonus(original_matrix, character_matrix, check) if valid_matrix?(new_matrix)
     end
 
     results.sort_by(&:last).last
@@ -136,7 +171,6 @@ class GameMatrix
   end
 
   def caculate_score_on_map(map_for_caculate)
-    binding.pry
     score = 0
     map_for_caculate.each_with_index do |row, index|
       score += (index + 1) * (row.reduce(&:+))

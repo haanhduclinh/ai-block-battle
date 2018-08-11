@@ -60,7 +60,7 @@ DROP = "drop"
 TURN_LEFT = "turnleft"
 TURN_RIGHT = "turnright"
 
-
-
+SCORE_BONUS = 20
+BORDER_SCORE = 10
 
 

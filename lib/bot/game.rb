@@ -49,12 +49,12 @@ class Game
     field_height = @state.settings.field_height.to_i - 1
     field_width = @state.settings.field_width.to_i - 1
 
-    while x > current_pos_x && current_pos_x + @current_character.size <= field_width do
+    while x > current_pos_x && current_pos_x + @current_character.first.size <= field_width do
       commands << RIGHT
       current_pos_x += 1
     end
 
-    while x < current_pos_x && current_pos_x - @current_character.size >= 0 do
+    while x < current_pos_x && current_pos_x - @current_character.first.size >= 0 do
       commands << LEFT
       current_pos_x -= 1
     end
@@ -70,15 +70,14 @@ class Game
   def find_land(character_matrix)
     result = {}
     possible_pos = find_suitable_pos
-  binding.pry
     possible_pos.sort_by {|x| x[:pos].last }.last
   end
 
   def do_action(pos, character)
     # {:type=>1, :pos=>["[0, 2]", 68]}
+
     commands = []
-    binding.pry
-    target_x, target_y = x_y_caculate_to_realmap(pos[:pos].first.split(",").map(&:to_i))
+    target_x, target_y = pos[:pos].first.split(",").map(&:to_i)
 
     case pos[:type]
     when NORMAL_TYPE
@@ -96,15 +95,6 @@ class Game
     end
 
     puts commands.join(",")
-  end
-
-  def x_y_caculate_to_realmap(x_y_caculate_map)
-    caculate_y, caculate_x = x_y_caculate_map
-
-    field_height = @state.settings.field_height.to_i - 1
-    field_width = @state.settings.field_width.to_i - 1
-
-    [field_width - caculate_x, field_height - caculate_y]
   end
 
   def find_suitable_pos
@@ -130,7 +120,7 @@ class Game
     character_270 = @flip.rotate_270(@current_character)
     result << {
       type: FLIP_270_TYPE,
-      pos: @game_matrix.landable_pos(@state.current_map, character_180)
+      pos: @game_matrix.landable_pos(@state.current_map, character_270)
     }
 
     result
