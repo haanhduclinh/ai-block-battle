@@ -1,5 +1,6 @@
 class GameMatrix
   def matrix_after_land(original_matrix, character_matrix, land_pos)
+
     matrix_size = [character_matrix.first.size, character_matrix.size]
     small_original_matrix = Matrix[*build_matrix_from_start_point(original_matrix, land_pos, matrix_size)]
     character_matrix = Matrix[*character_matrix]
@@ -27,7 +28,7 @@ class GameMatrix
 
     (0..max_new_arr_y).each do |y|
       (0..max_new_arr_x).each do |x|
-        result[x + start_point_x][start_point_y + y] = with_array[x][y]
+        result[y + start_point_y][start_point_x + x] = with_array[y][x]
       end
     end
 
@@ -37,7 +38,6 @@ class GameMatrix
   def divide_to_start_point(original_matrix, size_x, size_y)
     # example separate 4x4 -> 2x2 -> It will return start poin of smaller matrix
     # todo enhance select better position
-binding.pry
     result = []
     start_point_x = 0
     start_point_y = 0
@@ -46,14 +46,13 @@ binding.pry
 
     (start_point_y..max_origin_height).each do |y|
       (start_point_x..max_origin_width).each do |x|
-        if y - size_y < 0 
-          next
-        elsif y - size_y == 0 && x - 1 > 0 && y >= size_y && y <= original_matrix.size - 1 && x - 1 + size_x <= max_origin_width - 1
-          result << [x - 1, y]
-        elsif original_matrix[y - size_x].any? {|x| !x.zero? } && x - 1 > 0 && y >= size_y && y <= original_matrix.size - 1 && x - 1 + size_x <= max_origin_width - 1
-          result << [x - 1, y]
-        else
-          next
+        check_x = max_origin_width - x
+        check_y = max_origin_height - y
+
+        if check_x + size_x <= max_origin_width
+          if check_y + size_y <= max_origin_height
+            result << [check_x, check_y]
+          end
         end
       end
     end
@@ -68,12 +67,11 @@ binding.pry
     matrix_size = [character_matrix.first.size, character_matrix.size]
 
     checks = divide_to_start_point(original_matrix, size_x, size_y)
-    binding.pry
     results = {}
 
     checks.each do |check|
       smaller_matrix = Matrix[*build_matrix_from_start_point(original_matrix, check, matrix_size)]
-      new_matrix = Matrix[*character_matrix] + smaller_matrix
+      new_matrix = Matrix[*character_matrix] + normalize_matrix(smaller_matrix.to_a)
 
       results[check.join(",")] = caculate_score(original_matrix, character_matrix, check) if valid_matrix?(new_matrix)
     end
@@ -81,15 +79,15 @@ binding.pry
     results.sort_by(&:last).last
   end
 
-  def normalize_character_matrix(character_matrix)
-    arr = Array.new(character_matrix.size) { Array.new(character_matrix.first.size) }
+  def normalize_matrix(matrix)
+    arr = Array.new(matrix.size) { Array.new(matrix.first.size) }
 
-    max_height = character_matrix.size - 1
-    max_width = character_matrix.first.size - 1
+    max_height = matrix.size - 1
+    max_width = matrix.first.size - 1
 
     (0..max_height).each do |y|
       (0..max_width).each do |x|
-        arr[y][x] = if character_matrix[y][x].zero?
+        arr[y][x] = if matrix[y][x].zero?
                       0
                     else
                       1
@@ -97,7 +95,7 @@ binding.pry
       end
     end
 
-    arr
+    Matrix[*arr]
   end
 
   def caculate_score(original_matrix, character_matrix, land_pos)
@@ -107,6 +105,7 @@ binding.pry
 
   def build_matrix_from_start_point(original_matrix, start_point, matrix_size)
     # example start point [0,1] and matrix_size [2,3]
+
     result = Array.new(matrix_size.last) { Array.new(matrix_size.first)  }
 
     start_point_x, start_point_y = start_point
@@ -115,9 +114,9 @@ binding.pry
     matrix_size_x_limit = matrix_size_x - 1
     matrix_size_y_limit = matrix_size_y - 1
 
-    (0..matrix_size_x_limit).each do |x|
-      (0..matrix_size_y_limit).each do |y|
-        result[x][y] = original_matrix[start_point_x + x][start_point_y + y]
+    (0..matrix_size_y_limit).each do |y|
+      (0..matrix_size_x_limit).each do |x|
+        result[y][x] = original_matrix[start_point_y + y][start_point_x + x]
       end
     end
 
