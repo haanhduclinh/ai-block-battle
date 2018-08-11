@@ -114,12 +114,13 @@ class GameMatrix
       (0..max_origin_width).each do |x|
         check_x = max_origin_width - x - size_x
         check_y = max_origin_height - y - size_y
+          result << [check_x, check_y] if check_x >= 0 && check_y >= 0
 
-        if check_y == max_origin_height - size_y
-          result << [check_x, check_y] if check_x + size_x <= max_origin_width && check_x >= 0 && check_y >= 0
-        elsif check_y < max_origin_height && original_matrix[check_y + 1].all? {|x| x.zero? }
-          result << [check_x, check_y] if check_x + size_x <= max_origin_width && check_y + size_y <= max_origin_height && check_x >= 0 && check_y >= 0
-        end
+        # if check_y == max_origin_height - size_y
+        #   result << [check_x, check_y] if check_x + size_x <= max_origin_width && check_x >= 0 && check_y >= 0
+        # elsif check_y < max_origin_height && original_matrix[check_y + 1].all? {|x| x.zero? }
+        #   result << [check_x, check_y] if check_x + size_x <= max_origin_width && check_y + size_y <= max_origin_height && check_x >= 0 && check_y >= 0
+        # end
       end
     end
 
@@ -170,7 +171,7 @@ class GameMatrix
     size_x = character_matrix.first.size
     size_y = character_matrix.size
 
-    character_matrix = normalize_character(character_type)
+    character_matrix = normalize_character(character_type) || character_matrix
 
     matrix_size = [character_matrix.first.size, character_matrix.size]
 
@@ -359,6 +360,8 @@ class GameMatrix
   # end
 
   def choose_best(results, original_matrix, character_matrix)
+    new_results = []
+
     results.each_with_index do |check, index|
       land_pos = check.first.split(",").map(&:to_i)
 
@@ -367,13 +370,17 @@ class GameMatrix
       dead_hole_with_check = find_dead_hole(this_map)
 
       if dead_hole_with_check > original_dead_hole
-        results[index].last = results[index].last + (dead_hole_with_check - original_dead_hole) * DEAD_HOLE_SCORE
+        pos = results[index].first
+        new_score = results[index].last + (dead_hole_with_check - original_dead_hole) * DEAD_HOLE_SCORE
+        new_results << [pos, new_score]
       else
-        results[index].last = results[index].last - (original_dead_hole - dead_hole_with_check) * DEAD_HOLE_SCORE
+        pos = results[index].first
+        new_score = results[index].last - (original_dead_hole - dead_hole_with_check) * DEAD_HOLE_SCORE
+        new_results << [pos, new_score]
       end
     end
 
-    results.sort_by(&:last).first.first
+    new_results.sort_by(&:last).last
   end
 
   def find_dead_hole(matrix)
@@ -385,11 +392,11 @@ class GameMatrix
       (0..max_matrix_width).each do |x|
         if x == 0 && y >= 1 && !matrix[y][x + 1].zero? && y + 1 <= max_matrix_height && x + 1 <= max_matrix_width && (!matrix[y+1][x].zero? || y+1 == max_matrix_height ) && (!matrix[y - 1][x].zero? || y - 1 == 0)
           dead_hole << [x, y]
-        elsif x == max_matrix_width && y >= 1 && !matrix[y][x - 1].zero? && (!matrix[y+1][x].zero? || y+1 == max_matrix_height ) && (!matrix[y - 1][x].zero? || y - 1 == 0)
+        elsif x == max_matrix_width && y >= 1 && y + 1 <= max_matrix_height && !matrix[y][x - 1].zero? && (!matrix[y+1][x].zero? || y+1 == max_matrix_height ) && (!matrix[y - 1][x].zero? || y - 1 == 0)
           dead_hole << [x, y]
-        elsif y == 0 && x >= 1 &&!matrix[1][x].zero? && (!matrix[y][x+1].zero?) && !matrix[y][x - 1].zero?
+        elsif y == 0 && x >= 1 && x+1 <= max_matrix_width && !matrix[1][x].zero? && (!matrix[y][x+1].zero?) && !matrix[y][x - 1].zero?
           dead_hole << [x, y]
-        elsif y == max_matrix_height && x >= 1 && !matrix[y - 1][x].zero? && (!matrix[y][x+1].zero? || x+1 == max_matrix_width ) && (!matrix[y][x - 1].zero? || x - 1 == 0)
+        elsif y == max_matrix_height && x >= 1  && x + 1 <= max_matrix_width && !matrix[y - 1][x].zero? && (!matrix[y][x+1].zero? || x+1 == max_matrix_width ) && (!matrix[y][x - 1].zero? || x - 1 == 0)
           dead_hole << [x, y]
         elsif x == 0 && y >= 1 && y + 1 <= max_matrix_height && !matrix[y+1][x].zero? &&  (!matrix[y - 1][x].zero? || y - 1 == 0)
           dead_hole << [x, y]
