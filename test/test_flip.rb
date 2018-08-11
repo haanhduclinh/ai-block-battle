@@ -6,7 +6,7 @@ require "test/unit"
 
 class TestGrid < Test::Unit::TestCase
   def setup
-    @grid = Grid.new
+    @grid = Flip.new
   end
 
   def test_rotate_90

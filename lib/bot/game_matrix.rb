@@ -124,6 +124,9 @@ binding.pry
     result
   end
 
+  def find_path(current_post, target, original_matrix, character_matrix)
+  end
+
   def valid_matrix?(matrix)
     # can not have sum more than 2
     response = matrix.index do |e|
