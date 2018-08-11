@@ -70,12 +70,13 @@ class Game
   def find_land(character_matrix)
     result = {}
     possible_pos = find_suitable_pos
+    # binding.pry
     possible_pos.sort_by {|x| x[:pos].last }.last
   end
 
   def do_action(pos, character)
     # {:type=>1, :pos=>["[0, 2]", 68]}
-
+binding.pry
     commands = []
     target_x, target_y = pos[:pos].first.split(",").map(&:to_i)
 

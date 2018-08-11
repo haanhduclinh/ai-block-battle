@@ -38,11 +38,12 @@ class GameMatrix
   def divide_to_start_point(original_matrix, size_x, size_y)
     # example separate 4x4 -> 2x2 -> It will return start poin of smaller matrix
     # todo enhance select better position
+
     result = []
     start_point_x = 0
     start_point_y = 0
-    max_origin_width = original_matrix.first.size - 1
-    max_origin_height = original_matrix.size - 1
+    max_origin_width = original_matrix.first.size
+    max_origin_height = original_matrix.size
 
     (start_point_y..max_origin_height).each do |y|
       (start_point_x..max_origin_width).each do |x|
@@ -110,7 +111,7 @@ class GameMatrix
 
       results[check.join(",")] = caculate_score(original_matrix, character_matrix, check) + bonus(original_matrix, character_matrix, check) if valid_matrix?(new_matrix)
     end
-
+# binding.pry
     results.sort_by(&:last).last
   end
 
