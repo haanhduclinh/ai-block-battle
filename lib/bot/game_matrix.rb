@@ -37,11 +37,10 @@ class GameMatrix
   def divide_to_start_point(original_matrix, size_x, size_y)
     # example separate 4x4 -> 2x2 -> It will return start poin of smaller matrix
     # todo enhance select better position
-
+binding.pry
     result = []
     start_point_x = 0
     start_point_y = 0
-
     max_origin_width = original_matrix.first.size - 1
     max_origin_height = original_matrix.size - 1
 
@@ -65,6 +64,7 @@ class GameMatrix
   def landable_pos(original_matrix, character_matrix)
     size_x = character_matrix.first.size
     size_y = character_matrix.size
+
     matrix_size = [character_matrix.first.size, character_matrix.size]
 
     checks = divide_to_start_point(original_matrix, size_x, size_y)

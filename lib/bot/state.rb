@@ -8,10 +8,10 @@ class State
   end
 
   def current_map
-    my_player.field.reverse
+    my_player.field
   end
 
-  def current_score(display_view = false)
+  def current_score
     score = 0
     current_map.each_with_index do |row, index|
       score += index * (row.reduce(&:+))

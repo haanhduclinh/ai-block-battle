@@ -28,7 +28,7 @@ class TestGameMatrix < Test::Unit::TestCase
 
     sum = m1 + m2
     response = @matrix.valid_matrix?(sum)
-    assert_equal(response, true, "it should invalid")
+    assert_equal(response, false, "it should invalid")
   end
 
   def test_merge_array
@@ -81,5 +81,45 @@ class TestGameMatrix < Test::Unit::TestCase
 
     response = @matrix.matrix_after_land(input_matrix, character_matrix, land_pos)
     assert_equal(response, expected_array, "it should same")
+  end
+
+  def test_find_path
+    current_post = [3, -1]
+    character_matrix = [
+      [0, 0, 0, 0],
+      [1, 1, 1, 1],
+      [0, 0, 0, 0],
+      [0, 0, 0, 0]
+    ]
+
+    original_matrix = [
+      [0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 2, 2, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 2, 2, 0, 0, 0, 0],
+    ]
+
+    target= [0, 15]
+    expect = [
+      "left", "left", "down", "right"
+    ]
+    response = @matrix.find_path(current_post, target, original_matrix, character_matrix)
+    assert_equal(response, expect, "it should be equal")
   end
 end

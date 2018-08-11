@@ -71,7 +71,7 @@ class Game
     result = {}
     possible_pos = find_suitable_pos
   binding.pry
-    possible_pos.sort_by {|x| x[:pos].last }.first
+    possible_pos.sort_by {|x| x[:pos].last }.last
   end
 
   def do_action(pos, character)
@@ -127,7 +127,7 @@ class Game
       pos: @game_matrix.landable_pos(@state.current_map, character_180)
     }
 
-    character_270 = @flip.rotate_180(@current_character)
+    character_270 = @flip.rotate_270(@current_character)
     result << {
       type: FLIP_270_TYPE,
       pos: @game_matrix.landable_pos(@state.current_map, character_180)
@@ -146,6 +146,10 @@ class Game
     end
 
     sum.zero?
+  end
+
+  def find_path(current_pos, target_pos, original_matrix, character_matrix)
+
   end
 
   def combine_map(character, map, input_pos)
