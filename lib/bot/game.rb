@@ -12,31 +12,31 @@ class Game
     case @state.this_piece_type
     when I
       @current_character = I_MATRIX
-      pos = find_land(@current_character)
+      pos = find_land(@current_character, I)
       do_action(pos, I)
     when J
       @current_character = J_MATRIX
-      pos = find_land(@current_character)
+      pos = find_land(@current_character, J)
       do_action(pos, J)
     when L
       @current_character = L_MATRIX
-      pos = find_land(@current_character)
+      pos = find_land(@current_character, L)
       do_action(pos, L)
     when O
       @current_character = O_MATRIX
-      pos = find_land(@current_character)
+      pos = find_land(@current_character, O)
       do_action(pos, O)
     when S
       @current_character = S_MATRIX
-      pos = find_land(@current_character)
+      pos = find_land(@current_character, S)
       do_action(pos, S)
     when T
       @current_character = T_MATRIX
-      pos = find_land(@current_character)
+      pos = find_land(@current_character, T)
       do_action(pos, T)
     when Z
       @current_character = Z_MATRIX
-      pos = find_land(@current_character)
+      pos = find_land(@current_character, Z)
       do_action(pos, Z)
     end
   end
@@ -67,9 +67,9 @@ class Game
     commands
   end
 
-  def find_land(character_matrix)
+  def find_land(character_matrix, character)
     result = {}
-    possible_pos = find_suitable_pos
+    possible_pos = find_suitable_pos(@state.current_map, @current_character, character)
     possible_pos.sort_by {|x| x[:pos].last }.last
   end
 
@@ -97,30 +97,30 @@ class Game
     puts commands.join(",")
   end
 
-  def find_suitable_pos
+  def find_suitable_pos(current_map, character, sign)
     result = []
 
     result << {
       type: NORMAL_TYPE,
-      pos: @game_matrix.landable_pos(@state.current_map, @current_character)
+      pos: @game_matrix.landable_pos(current_map, character)
     }
 
-    character_90 = @flip.rotate_90(@current_character)
+    character_90 = @flip.rotate_90(character)
     result << {
       type: FLIP_90_TYPE,
-      pos: @game_matrix.landable_pos(@state.current_map, character_90)
+      pos: @game_matrix.landable_pos(current_map, character_90)
     }
 
-    character_180 = @flip.rotate_180(@current_character)
+    character_180 = @flip.rotate_180(character)
     result << {
       type: FLIP_180_TYPE,
-      pos: @game_matrix.landable_pos(@state.current_map, character_180)
+      pos: @game_matrix.landable_pos(current_map, character_180)
     }
 
-    character_270 = @flip.rotate_270(@current_character)
+    character_270 = @flip.rotate_270(character)
     result << {
       type: FLIP_270_TYPE,
-      pos: @game_matrix.landable_pos(@state.current_map, character_270)
+      pos: @game_matrix.landable_pos(current_map, character_270)
     }
 
     result

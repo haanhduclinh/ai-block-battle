@@ -136,7 +136,48 @@ class GameMatrix
       results[check.join(",")] = caculate_score(original_matrix, character_matrix, check) + bonus(original_matrix, character_matrix, check) if valid_matrix?(new_matrix)
     end
 
-    results.sort_by(&:last).last
+    # results.sort_by(&:last).last
+
+    choose_best(results.sort_by(&:last), original_matrix, character_matrix)
+  end
+
+  def choose_best(results, original_matrix, character_matrix)
+    max_score = results.sort_by(&:last).last.last
+    same_score = results.sort_by(&:last).select {|x| x.last == max_score }
+    results_dead = {}
+
+    number_space_near = 0
+
+    matrix_size = [character_matrix.first.size, character_matrix.size]
+
+    same_score.each do |check|
+      land_pos = check.first.split(",").map(&:to_i)
+
+      original_dead_hole = find_dead_hole(original_matrix)
+      this_map = matrix_after_land(original_matrix, character_matrix, land_pos)
+      dead_hole_with_check = find_dead_hole(this_map)
+
+      next if original_dead_hole > dead_hole_with_check
+      results_dead[check.first] = dead_hole_with_check
+    end
+
+    pos = results_dead.sort_by(&:last).first.first
+    results.select {|x| x.first == pos }.first
+  end
+
+  def find_dead_hole(matrix)
+    max_matrix_height = matrix.size
+    max_matrix_width = matrix.first.size
+    dead_hole = 0
+
+    (0..max_matrix_height).each do |y|
+      (0..max_matrix_width).each do |x|
+        next if x == 0 || y = 0 || x == max_matrix_width || y == max_matrix_height
+        dead_hole += 1 if matrix[y][x] == 0 && !matrix[y - 1][x].zero? && !matrix[y + 1][x].zero? && !matrix[y][x - 1].zero? && !matrix[y][x + 1].zero?
+      end
+    end
+
+    dead_hole
   end
 
   def normalize_matrix(matrix)
