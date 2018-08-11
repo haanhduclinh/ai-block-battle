@@ -65,7 +65,7 @@ class GameMatrix
 
     map_for_caculate = matrix_after_land(original_matrix, character_matrix, check)
     new_matrix_score = caculate_bonus_score(map_for_caculate)
-    near_border_score = ((original_matrix.first.size / 2) - check.first + character_matrix.size).abs * BORDER_SCORE
+    near_border_score = ((original_matrix.first.size / 2) - (check.first + character_matrix.size)).abs * BORDER_SCORE
 
     (new_matrix_score - current_matrix_score) * SCORE_BONUS + near_border_score
   end
