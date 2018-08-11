@@ -62,5 +62,5 @@ TURN_RIGHT = "turnright"
 
 SCORE_BONUS = 0
 BORDER_SCORE = 1
-
+GET_SCORE = 100
 

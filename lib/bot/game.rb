@@ -54,7 +54,7 @@ class Game
       current_pos_x += 1
     end
 
-    while x < current_pos_x && current_pos_x - @current_character.first.size >= 0 do
+    while x < current_pos_x && current_pos_x >= 0 do
       commands << LEFT
       current_pos_x -= 1
     end
@@ -70,13 +70,12 @@ class Game
   def find_land(character_matrix)
     result = {}
     possible_pos = find_suitable_pos
-    # binding.pry
     possible_pos.sort_by {|x| x[:pos].last }.last
   end
 
   def do_action(pos, character)
     # {:type=>1, :pos=>["[0, 2]", 68]}
-binding.pry
+# binding.pry
     commands = []
     target_x, target_y = pos[:pos].first.split(",").map(&:to_i)
 
@@ -147,5 +146,26 @@ binding.pry
     x, y = input_pos
     map[x][y] = 1
     map
+  end
+
+  def check_empty_arr?(array)
+    flag = 0
+    check_status = true
+    array.each do |val|
+      if val != 0
+        flag += 1
+      end
+    end
+
+    if flag != 0
+      check_status = false
+    end
+
+    check_status
+  end
+
+  def check_size_char?(row, character)
+    return if row.first == nil?
+    row.uniq.size == character.first.size
   end
 end
