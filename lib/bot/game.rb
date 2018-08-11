@@ -70,6 +70,8 @@ class Game
   def find_land(character_matrix, character)
     result = {}
     possible_pos = find_suitable_pos(@state.current_map, @current_character, character)
+
+    binding.pry if ENV['DEBUG']
     possible_pos.sort_by {|x| x[:pos].last }.last
   end
 
@@ -100,30 +102,69 @@ class Game
   def find_suitable_pos(current_map, character, sign)
     result = []
 
-    result << {
+    result << normal_progress(current_map, character, sign)
+
+    result << flip_90_progress(current_map, character, sign)
+
+    result << flip_180_progress(current_map, character, sign)
+
+    result << flip_270_progress(current_map, character, sign)
+
+    result
+  end
+
+  def normal_progress(current_map, character, sign)
+    character_type = {
+      rotate: NORMAL_TYPE,
+      character_type: sign
+    }
+
+    {
       type: NORMAL_TYPE,
-      pos: @game_matrix.landable_pos(current_map, character)
+      pos: @game_matrix.landable_pos(current_map, character, character_type)
+    }
+  end
+
+  def flip_90_progress(current_map, character, sign)
+    character_type = {
+      rotate: FLIP_90_TYPE,
+      character_type: sign
     }
 
     character_90 = @flip.rotate_90(character)
-    result << {
-      type: FLIP_90_TYPE,
-      pos: @game_matrix.landable_pos(current_map, character_90)
+
+    {
+      type: NORMAL_TYPE,
+      pos: @game_matrix.landable_pos(current_map, character_90, character_type)
+    }
+  end
+
+  def flip_180_progress(current_map, character, sign)
+    character_type = {
+      rotate: FLIP_180_TYPE,
+      character_type: sign
     }
 
     character_180 = @flip.rotate_180(character)
-    result << {
-      type: FLIP_180_TYPE,
-      pos: @game_matrix.landable_pos(current_map, character_180)
+
+    {
+      type: NORMAL_TYPE,
+      pos: @game_matrix.landable_pos(current_map, character_180, character_type)
+    }
+  end
+
+  def flip_270_progress(current_map, character, sign)
+    character_type = {
+      rotate: FLIP_270_TYPE,
+      character_type: sign
     }
 
     character_270 = @flip.rotate_270(character)
-    result << {
-      type: FLIP_270_TYPE,
-      pos: @game_matrix.landable_pos(current_map, character_270)
-    }
 
-    result
+    {
+      type: NORMAL_TYPE,
+      pos: @game_matrix.landable_pos(current_map, character_270, character_type)
+    }
   end
 
   def validate?(x, y, map)

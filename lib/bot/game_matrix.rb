@@ -2,9 +2,17 @@ class GameMatrix
   def matrix_after_land(original_matrix, character_matrix, land_pos)
 
     matrix_size = [character_matrix.first.size, character_matrix.size]
-
+# binding.pry
     while character_matrix[character_matrix.size - 1].all? {|x| x.zero? }
       character_matrix = move_to_bottom(character_matrix)
+    end
+
+    while character_matrix.all? {|x| x[0].zero? }
+      character_matrix = move_to_left(character_matrix)
+    end
+
+    while character_matrix.all? {|x| x[character_matrix.first.size - 1].zero? }
+      character_matrix = move_to_right(character_matrix)
     end
 
     small_original_matrix = Matrix[*build_matrix_from_start_point(original_matrix, land_pos, matrix_size)]
@@ -26,6 +34,43 @@ class GameMatrix
       (0..max_width_character_matrix).each do |x|
         next if y.zero?
         arr[y][x] = character_matrix[y - 1][x]
+      end
+    end
+
+    arr
+  end
+
+  def move_to_left(character_matrix)
+    arr = Array.new(character_matrix.size) { Array.new(character_matrix.size) }
+
+    max_width_character_matrix = character_matrix.first.size - 1
+    max_height_character_matrix = character_matrix.size - 1
+
+    arr.each {|x| x[max_width_character_matrix] = 0 }
+
+    (0..max_height_character_matrix).each do |y|
+      (0..max_width_character_matrix).each do |x|
+        next if x == max_width_character_matrix
+        arr[y][x] = character_matrix[y][x + 1]
+      end
+    end
+
+    arr
+  end
+
+  def move_to_right(character_matrix)
+    arr = Array.new(character_matrix.size) { Array.new(character_matrix.size) }
+
+    max_width_character_matrix = character_matrix.first.size - 1
+    max_height_character_matrix = character_matrix.size - 1
+
+    arr.each {|x| x[0] = 0 }
+
+    (0..max_height_character_matrix).each do |y|
+      (0..max_width_character_matrix).each do |x|
+        next if x.zero?
+
+        arr[y][x] = character_matrix[y][x - 1]
       end
     end
 
@@ -116,13 +161,16 @@ class GameMatrix
     score
   end
 
-  def landable_pos(original_matrix, character_matrix)
+  def landable_pos(original_matrix, character_matrix, character_type)
+    # character_type = {
+    #   rotate: NORMAL_TYPE,
+    #   character_type: sign
+    # }
+
     size_x = character_matrix.first.size
     size_y = character_matrix.size
 
-    while character_matrix[character_matrix.size - 1].all? {|x| x.zero? }
-      character_matrix = move_to_bottom(character_matrix)
-    end
+    character_matrix = normalize_character(character_type)
 
     matrix_size = [character_matrix.first.size, character_matrix.size]
 
@@ -136,48 +184,228 @@ class GameMatrix
       results[check.join(",")] = caculate_score(original_matrix, character_matrix, check) + bonus(original_matrix, character_matrix, check) if valid_matrix?(new_matrix)
     end
 
+    binding.pry if ENV['DEBUG']
     # results.sort_by(&:last).last
 
     choose_best(results.sort_by(&:last), original_matrix, character_matrix)
   end
 
+  def normalize_character(character_type)
+    # character_type = {
+    #   rotate: NORMAL_TYPE,
+    #   character_type: sign
+    # }
+
+    case character_type[:character_type]
+    when O
+      O_MATRIX
+    when I
+      chose_i(character_type[:rotate])
+    when J
+      chose_j(character_type[:rotate])
+    when L
+      chose_l(character_type[:rotate])
+    when S
+      chose_s(character_type[:rotate])
+    when T
+      chose_t(character_type[:rotate])
+    when Z
+      chose_z(character_type[:rotate])
+    end
+  end
+
+  def chose_i(rotate)
+    case rotate
+    when NORMAL_TYPE || FLIP_180_TYPE
+      [
+        [1, 1, 1, 1]
+      ]
+    when FLIP_90_TYPE || FLIP_270_TYPE
+      [
+        [1],
+        [1],
+        [1],
+        [1]
+      ]
+    end
+  end
+
+  def chose_j(rotate)
+    case rotate
+    when NORMAL_TYPE
+      [
+        [1, 0, 0],
+        [1, 1, 1],
+      ]
+    when FLIP_90_TYPE
+      [
+        [1, 1],
+        [1, 0],
+        [1, 0]
+      ]
+    when FLIP_180_TYPE
+     [
+        [1, 1, 1],
+        [0, 0, 1],
+      ]
+    when FLIP_270_TYPE
+      [
+        [0, 1],
+        [0, 1],
+        [1, 1]
+      ]
+    end
+  end
+
+  def chose_l(rotate)
+    case rotate
+    when NORMAL_TYPE
+      [
+        [0, 0, 1],
+        [1, 1, 1]
+      ]
+    when FLIP_90_TYPE
+      [
+        [1, 0],
+        [1, 0],
+        [1, 1]
+      ]
+    when FLIP_180_TYPE
+     [
+        [1, 1, 1],
+        [1, 0, 0],
+      ]
+    when FLIP_270_TYPE
+      [
+        [1, 1],
+        [0, 1],
+        [0, 1]
+      ]
+    end
+  end
+
+  def chose_s(rotate)
+    case rotate
+    when NORMAL_TYPE || FLIP_180_TYPE
+      [
+        [0, 1, 1],
+        [1, 1, 0]
+      ]
+    when FLIP_90_TYPE || FLIP_270_TYPE
+      [
+        [1, 0],
+        [1, 1],
+        [0, 1]
+      ]
+    end
+  end
+
+  def chose_t(rotate)
+    case rotate
+    when NORMAL_TYPE
+      [
+        [0, 1, 0],
+        [1, 1, 1],
+      ]
+    when FLIP_90_TYPE
+      [
+        [1, 0],
+        [1, 1],
+        [1, 0]
+      ]
+    when FLIP_180_TYPE
+     [
+        [1, 1, 1],
+        [0, 1, 0],
+      ]
+    when FLIP_270_TYPE
+      [
+        [0, 1],
+        [1, 1],
+        [0, 1]
+      ]
+    end
+  end
+ 
+  def chose_z(rotate)
+    case rotate
+    when NORMAL_TYPE || FLIP_180_TYPE
+      [
+        [1, 1, 0],
+        [0, 1, 1],
+      ]
+    when FLIP_90_TYPE || FLIP_270_TYPE
+      [
+        [0, 1],
+        [1, 1],
+        [1, 0]
+      ]
+    end
+  end
+
+  # def normalize_character(character_matrix)
+  #   y = character_matrix.size - 1
+  #   x = character_matrix.first.size - 1
+
+  #   (0..y).each do |check_y|
+  #     y -= 1 if character_matrix[check_y].all? {|e| e.zero? }
+  #   end
+
+  #   (0..x).each do |check_x|
+  #     x -= 1 if character_matrix.all? {|x| x[check_x].zero? }
+  #   end
+
+  #   arr = Array.new(y) { Array.new(x) }
+  # end
+
   def choose_best(results, original_matrix, character_matrix)
-    max_score = results.sort_by(&:last).last.last
-    same_score = results.sort_by(&:last).select {|x| x.last == max_score }
-    results_dead = {}
-
-    number_space_near = 0
-
-    matrix_size = [character_matrix.first.size, character_matrix.size]
-
-    same_score.each do |check|
+    results.each_with_index do |check, index|
       land_pos = check.first.split(",").map(&:to_i)
 
       original_dead_hole = find_dead_hole(original_matrix)
       this_map = matrix_after_land(original_matrix, character_matrix, land_pos)
       dead_hole_with_check = find_dead_hole(this_map)
 
-      next if original_dead_hole > dead_hole_with_check
-      results_dead[check.first] = dead_hole_with_check
-    end
-
-    pos = results_dead.sort_by(&:last).first.first
-    results.select {|x| x.first == pos }.first
-  end
-
-  def find_dead_hole(matrix)
-    max_matrix_height = matrix.size
-    max_matrix_width = matrix.first.size
-    dead_hole = 0
-
-    (0..max_matrix_height).each do |y|
-      (0..max_matrix_width).each do |x|
-        next if x == 0 || y = 0 || x == max_matrix_width || y == max_matrix_height
-        dead_hole += 1 if matrix[y][x] == 0 && !matrix[y - 1][x].zero? && !matrix[y + 1][x].zero? && !matrix[y][x - 1].zero? && !matrix[y][x + 1].zero?
+      if dead_hole_with_check > original_dead_hole
+        results[index].last = results[index].last + (dead_hole_with_check - original_dead_hole) * DEAD_HOLE_SCORE
+      else
+        results[index].last = results[index].last - (original_dead_hole - dead_hole_with_check) * DEAD_HOLE_SCORE
       end
     end
 
-    dead_hole
+    results.sort_by(&:last).first.first
+  end
+
+  def find_dead_hole(matrix)
+    max_matrix_height = matrix.size - 1
+    max_matrix_width = matrix.first.size - 1
+    dead_hole = []
+
+    (0..max_matrix_height).each do |y|
+      (0..max_matrix_width).each do |x|
+        if x == 0 && y >= 1 && !matrix[y][x + 1].zero? && y + 1 <= max_matrix_height && x + 1 <= max_matrix_width && (!matrix[y+1][x].zero? || y+1 == max_matrix_height ) && (!matrix[y - 1][x].zero? || y - 1 == 0)
+          dead_hole << [x, y]
+        elsif x == max_matrix_width && y >= 1 && !matrix[y][x - 1].zero? && (!matrix[y+1][x].zero? || y+1 == max_matrix_height ) && (!matrix[y - 1][x].zero? || y - 1 == 0)
+          dead_hole << [x, y]
+        elsif y == 0 && x >= 1 &&!matrix[1][x].zero? && (!matrix[y][x+1].zero?) && !matrix[y][x - 1].zero?
+          dead_hole << [x, y]
+        elsif y == max_matrix_height && x >= 1 && !matrix[y - 1][x].zero? && (!matrix[y][x+1].zero? || x+1 == max_matrix_width ) && (!matrix[y][x - 1].zero? || x - 1 == 0)
+          dead_hole << [x, y]
+        elsif x == 0 && y >= 1 && y + 1 <= max_matrix_height && !matrix[y+1][x].zero? &&  (!matrix[y - 1][x].zero? || y - 1 == 0)
+          dead_hole << [x, y]
+        elsif x == 0 && y == 0 && !matrix[1][1].zero?
+          dead_hole << [x, y]
+        elsif x == max_matrix_width && y == max_matrix_height && !matrix[max_matrix_height - 1][max_matrix_width - 1].zero?
+          dead_hole << [x, y]
+        elsif x == 0 && y == max_matrix_height && !matrix[max_matrix_height - 1][1].zero?
+          dead_hole << [x, y]
+        elsif x == max_matrix_width && y == 0 && !matrix[1][max_matrix_width].zero?
+          dead_hole << [x, y]
+        end
+      end
+    end
+
+    dead_hole.size
   end
 
   def normalize_matrix(matrix)
