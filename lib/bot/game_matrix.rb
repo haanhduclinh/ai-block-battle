@@ -1,7 +1,5 @@
 class GameMatrix
   def matrix_after_land(original_matrix, character_matrix, land_pos, debug = false)
-    binding.pry if debug
-
     # while character_matrix[character_matrix.size - 1].all? {|x| x.zero? }
     #   character_matrix = move_to_bottom(character_matrix)
     # end
@@ -122,7 +120,7 @@ class GameMatrix
     result
   end
 
-  def bonus(original_matrix, character_matrix, check)
+  def bonus_to_get_score(original_matrix, character_matrix, check)
     score = 0
     map_for_caculate = matrix_after_land(original_matrix, character_matrix, check)
     map_for_caculate.each do |rows|
@@ -186,7 +184,7 @@ class GameMatrix
       smaller_matrix = Matrix[*build_matrix_from_start_point(original_matrix, update_correct_y, matrix_size)]
       new_matrix = Matrix[*character_matrix] + normalize_matrix(smaller_matrix.to_a)
 
-      results[check.join(",")] = caculate_score(original_matrix, character_matrix, update_correct_y) + bonus(original_matrix, character_matrix, update_correct_y) if valid_matrix?(new_matrix)
+      results[check.join(",")] = caculate_score(original_matrix, character_matrix, update_correct_y) + bonus_to_get_score(original_matrix, character_matrix, update_correct_y) if valid_matrix?(new_matrix)
     end
 
     binding.pry if ENV['DEBUG']

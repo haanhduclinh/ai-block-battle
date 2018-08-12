@@ -134,7 +134,7 @@ class Game
     character_90 = @flip.rotate_90(character)
 
     {
-      type: NORMAL_TYPE,
+      type: FLIP_90_TYPE,
       pos: @game_matrix.landable_pos(current_map, character_90, character_type)
     }
   end
@@ -148,7 +148,7 @@ class Game
     character_180 = @flip.rotate_180(character)
 
     {
-      type: NORMAL_TYPE,
+      type: FLIP_180_TYPE,
       pos: @game_matrix.landable_pos(current_map, character_180, character_type)
     }
   end
@@ -162,7 +162,7 @@ class Game
     character_270 = @flip.rotate_270(character)
 
     {
-      type: NORMAL_TYPE,
+      type: FLIP_270_TYPE,
       pos: @game_matrix.landable_pos(current_map, character_270, character_type)
     }
   end
