@@ -1,5 +1,5 @@
 class GameMatrix
-  def matrix_after_land(original_matrix, character_matrix, land_pos, debug = false)
+  def matrix_after_land(original_matrix, character_matrix, land_pos)
     # while character_matrix[character_matrix.size - 1].all? {|x| x.zero? }
     #   character_matrix = move_to_bottom(character_matrix)
     # end
@@ -108,12 +108,6 @@ class GameMatrix
     result = []
     max_origin_width = original_matrix.first.size
     max_origin_height = original_matrix.size
-    # size_x = 2
-    # size_y = 3
-# check_x = 8
-# check_y = 17
-# x = 0
-# y = 0
 
     (0..max_origin_height).each do |y|
       (0..max_origin_width).each do |x|
@@ -189,17 +183,10 @@ class GameMatrix
     end
 
     binding.pry if ENV['DEBUG']
-    results.sort_by(&:last).last
-
-    # choose_best(results.sort_by(&:last), original_matrix, character_matrix)
+    choose_best(results.sort_by(&:last).last(10), original_matrix, character_matrix)
   end
 
   def normalize_character(character_type)
-    # character_type = {
-    #   rotate: NORMAL_TYPE,
-    #   character_type: sign
-    # }
-
     case character_type[:character_type]
     when O
       O_MATRIX
@@ -347,23 +334,8 @@ class GameMatrix
     end
   end
 
-  # def normalize_character(character_matrix)
-  #   y = character_matrix.size - 1
-  #   x = character_matrix.first.size - 1
-
-  #   (0..y).each do |check_y|
-  #     y -= 1 if character_matrix[check_y].all? {|e| e.zero? }
-  #   end
-
-  #   (0..x).each do |check_x|
-  #     x -= 1 if character_matrix.all? {|x| x[check_x].zero? }
-  #   end
-
-  #   arr = Array.new(y) { Array.new(x) }
-  # end
-
   def choose_best(results, original_matrix, character_matrix)
-    new_results = []
+    new_results = Array.new(results.size) { Array.new(results.first.size) }
 
     results.each_with_index do |check, index|
       land_pos = check.first.split(",").map(&:to_i)
@@ -372,50 +344,123 @@ class GameMatrix
       this_map = matrix_after_land(original_matrix, character_matrix, land_pos)
       dead_hole_with_check = find_dead_hole(this_map)
 
-      if dead_hole_with_check > original_dead_hole
-        pos = results[index].first
-        new_score = results[index].last + (dead_hole_with_check - original_dead_hole) * DEAD_HOLE_SCORE
-        new_results << [pos, new_score]
-      else
+      if dead_hole_with_check <= original_dead_hole
         pos = results[index].first
         new_score = results[index].last - (original_dead_hole - dead_hole_with_check) * DEAD_HOLE_SCORE
-        new_results << [pos, new_score]
+        new_results[index] = [pos, new_score]
       end
     end
 
-    new_results.sort_by(&:last).last
+    new_results.select {|x| !x.first.nil? }.sort_by(&:last).last
   end
 
-  def find_dead_hole(matrix)
+  def find_dead_hole(original_matrix)
+    matrix = build_matrix_without_start_character(original_matrix)
+
     max_matrix_height = matrix.size - 1
     max_matrix_width = matrix.first.size - 1
     dead_hole = []
 
     (0..max_matrix_height).each do |y|
       (0..max_matrix_width).each do |x|
-        if x == 0 && y >= 1 && !matrix[y][x + 1].zero? && y + 1 <= max_matrix_height && x + 1 <= max_matrix_width && (!matrix[y+1][x].zero? || y+1 == max_matrix_height ) && (!matrix[y - 1][x].zero? || y - 1 == 0)
+        check_point = matrix[y][x]
+
+        if angle?(x, y, matrix)
+          dead_hole << [x, y] if matrix[y][x].zero? && valid_dead_hole_in_angle?(x, y, matrix)
+        elsif near_boder?(x, y, matrix)
+          dead_hole << [x, y] if matrix[y][x].zero? && valid_near_boder?(x, y, matrix)
+        elsif matrix[y][x].zero? && special_move_deadhole?(x, y, matrix) && !((0..y).all? {|check_y| matrix[check_y][x].zero? })
           dead_hole << [x, y]
-        elsif x == max_matrix_width && y >= 1 && y + 1 <= max_matrix_height && !matrix[y][x - 1].zero? && (!matrix[y+1][x].zero? || y+1 == max_matrix_height ) && (!matrix[y - 1][x].zero? || y - 1 == 0)
+        elsif matrix[y][x].zero? && !((0..y).all? {|check_y| matrix[check_y][x].zero? })
           dead_hole << [x, y]
-        elsif y == 0 && x >= 1 && x+1 <= max_matrix_width && !matrix[1][x].zero? && (!matrix[y][x+1].zero?) && !matrix[y][x - 1].zero?
-          dead_hole << [x, y]
-        elsif y == max_matrix_height && x >= 1  && x + 1 <= max_matrix_width && !matrix[y - 1][x].zero? && (!matrix[y][x+1].zero? || x+1 == max_matrix_width ) && (!matrix[y][x - 1].zero? || x - 1 == 0)
-          dead_hole << [x, y]
-        elsif x == 0 && y >= 1 && y + 1 <= max_matrix_height && !matrix[y+1][x].zero? &&  (!matrix[y - 1][x].zero? || y - 1 == 0)
-          dead_hole << [x, y]
-        elsif x == 0 && y == 0 && !matrix[1][1].zero?
-          dead_hole << [x, y]
-        elsif x == max_matrix_width && y == max_matrix_height && !matrix[max_matrix_height - 1][max_matrix_width - 1].zero?
-          dead_hole << [x, y]
-        elsif x == 0 && y == max_matrix_height && !matrix[max_matrix_height - 1][1].zero?
-          dead_hole << [x, y]
-        elsif x == max_matrix_width && y == 0 && !matrix[1][max_matrix_width].zero?
-          dead_hole << [x, y]
+        else
+          dead_hole << [x, y] if matrix[y][x].zero? && !((0..y).all? {|check_y| matrix[check_y][x].zero? }) && valid_normal_deadhole?(x, y, matrix)
         end
       end
     end
 
     dead_hole.size
+  end
+
+  def build_matrix_without_start_character(matrix)
+    arr = Array.new(matrix.size) { Array.new(matrix.first.size) }
+
+    arr[0] = Array.new(matrix.first.size) { 0 }
+
+    max_height = matrix.size - 1
+    max_width = matrix.first.size - 1
+    (1..max_height).each do |new_y|
+      (0..max_width).each do |new_x|
+        arr[new_y][new_x] = matrix[new_y][new_x]
+      end
+    end
+
+    arr
+  end
+
+  def special_move_deadhole?(x, y, matrix)
+    max_with = matrix.first.size - 1
+    max_height = matrix.size - 1
+
+    max_y_check = y - 1
+
+    !((0..max_y_check).all? {|check_y| matrix[check_y][x].zero? })
+  end
+
+  def valid_normal_deadhole?(x, y, matrix)
+    max_with = matrix.first.size - 1
+    max_height = matrix.size - 1
+
+    !matrix[y][x + 1].zero? && !matrix[y][x - 1].zero? && !matrix[y - 1][x].zero? && !matrix[y + 1][x].zero?
+  end
+
+  def valid_near_boder?(x, y, matrix)
+    max_with = matrix.first.size - 1
+    max_height = matrix.size - 1
+
+    case
+    when y == 0
+      !matrix[0][x + 1].zero? && !matrix[0][x - 1].zero? && !matrix[1][x].zero?
+    when x == 0
+      !matrix[y-1][0].zero? && !matrix[y + 1][0].zero? && !matrix[y][1].zero?
+    when y == max_height && !((0..y).all? {|check_y| matrix[check_y][x].zero? })
+      !matrix[max_height - 1][x].zero?
+    when x == max_with
+      !matrix[y][max_with - 1].zero?
+    end
+  end
+
+  def near_boder?(x, y, matrix)
+    max_with = matrix.first.size - 1
+    max_height = matrix.size - 1
+
+    x == 0 || y == 0 || x == max_with || y == max_height
+  end
+
+  def valid_dead_hole_in_angle?(x, y, matrix)
+    max_with = matrix.first.size - 1
+    max_height = matrix.size - 1
+
+    case
+    when x == 0 && y == 0
+      !matrix[0][1].zero? && !matrix[1][0].zero?
+    when x == 0 && y == max_height
+      !matrix[max_height - 1][0].zero? && !matrix[max_height][1].zero?
+    when x == max_with && y == 0
+      !matrix[0][max_with - 1].zero? && !matrix[1][max_with].zero?
+    when x == max_with && y == max_height
+      !matrix[max_height][max_with - 1].zero? && !matrix[max_height - 1][max_with].zero?
+    end
+  end
+
+  def angle?(x, y, matrix)
+    max_with = matrix.first.size - 1
+    max_height = matrix.size - 1
+
+    (x == 0 && y == 0) ||
+    (x == 0 && y == max_height) ||
+    (x == max_with && y == 0) ||
+    (x == max_with && y == max_height)
   end
 
   def normalize_matrix(matrix)

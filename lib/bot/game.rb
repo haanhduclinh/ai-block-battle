@@ -48,32 +48,32 @@ class Game
     # FLIP_180_TYPE = 2
     # FLIP_270_TYPE = 3
 
+    # binding.pry if character == T
+
+    character_type = {
+      rotate: pos[:type],
+      character_type: character
+    }
+
     current_pos_x, current_pos_y = @state.this_piece_position.split(",").map(&:to_i)
 
-    if character == I && pos[:type] == FLIP_90_TYPE && current_pos_x > x
-      x -= 0
-    elsif character == I && pos[:type] == FLIP_90_TYPE && current_pos_x < x
-      x += 1
-    elsif character == I && pos[:type] == FLIP_270_TYPE && current_pos_x > x
-      x -= 1
-    elsif character == I && pos[:type] == FLIP_270_TYPE && current_pos_x < x
-      x += 1
-    elsif character == L && pos[:type] == FLIP_90_TYPE && current_pos_x > x
-      x -= 1
-    elsif character == J && pos[:type] == FLIP_90_TYPE && current_pos_x > x
-      x -= 1
-    elsif character == T && pos[:type] == FLIP_90_TYPE && current_pos_x < x
-      x += 1
-    elsif character == T && pos[:type] == FLIP_90_TYPE && current_pos_x > x
-      x -= 1
-    end
+    character_matrix = @game_matrix.normalize_character(character_type) || @current_character
 
+    if need_special_move?(character_matrix, pos)
+      special_move(x, y, character_matrix)
+    else
+      goto_normal(x, y, character_matrix)
+    end
+  end
+
+  def goto_normal(x, y, character_matrix)
+    current_pos_x, current_pos_y = @state.this_piece_position.split(",").map(&:to_i)
     commands = []
 
     field_height = @state.settings.field_height.to_i - 1
     field_width = @state.settings.field_width.to_i - 1
 
-    while x > current_pos_x && current_pos_x + @current_character.first.size <= field_width do
+    while x > current_pos_x && current_pos_x + character_matrix.first.size <= field_width do
       commands << RIGHT
       current_pos_x += 1
     end
@@ -83,7 +83,7 @@ class Game
       current_pos_x -= 1
     end
 
-    while y > current_pos_y && current_pos_y - @current_character.size <= field_height do
+    while y > current_pos_y && current_pos_y - character_matrix.size <= field_height do
       commands << DOWN
       current_pos_y += 1
     end
@@ -91,36 +91,94 @@ class Game
     commands
   end
 
+  def need_special_move?(character_matrix, pos)
+    return false
+    land_pos = pos[:pos].first.split(",")
+    target_x, target_y = land_pos
+
+    target_point = @state.current_map[target_x, target_y]
+
+    map_after_land = @game_matrix.matrix_after_land(@settings.current_map, character_matrix, land_pos)
+    character_matrix = character_matrix
+  end
+
+  def special_move(x, y, character_matrix)
+  end
+
+  def update_current_pos!(character_type)
+    current_x, current_y = @state.this_piece_position.split(",").map(&:to_i)
+
+    case
+    when character_type[:character_type] == T && character_type[:rotate] == FLIP_90_TYPE
+      current_x += 1
+    when character_type[:character_type] == Z && character_type[:rotate] == FLIP_90_TYPE
+      current_x += 1
+    when character_type[:character_type] == J && character_type[:rotate] == FLIP_90_TYPE
+      current_x += 1
+    when character_type[:character_type] == L && character_type[:rotate] == FLIP_90_TYPE
+      current_x += 1
+    when character_type[:character_type] == I && character_type[:rotate] == FLIP_90_TYPE
+      current_x += 2
+    when character_type[:character_type] == I && character_type[:rotate] == FLIP_270_TYPE
+      current_x += 2
+    end
+
+    @state.this_piece_position = [current_x, current_y].join(",")
+  end
+
   def find_land(character_matrix, character)
     result = {}
     possible_pos = find_suitable_pos(@state.current_map, @current_character, character)
 
     binding.pry if ENV['DEBUG']
-    possible_pos.sort_by {|x| x[:pos].last }.last
+    # chose max score
+    possible_pos.select {|x| x[:pos] }.sort_by {|x| x[:pos].last }.last
   end
 
   def do_action(pos, character)
     # {:type=>1, :pos=>["[0, 2]", 68]}
-
     commands = []
     target_x, target_y = pos[:pos].first.split(",").map(&:to_i)
+    character_type = {
+      rotate: pos[:type],
+      character_type: character
+    }
 
     case pos[:type]
     when NORMAL_TYPE
       commands += go_to(target_x, target_y, pos, character)
     when FLIP_90_TYPE
       commands << "turnright"
+
+      update_current_pos!(character_type)
       commands += go_to(target_x, target_y, pos, character)
     when FLIP_180_TYPE
       commands << "turnright"
       commands << "turnright"
+
+      update_current_pos!(character_type)
       commands += go_to(target_x, target_y, pos, character)
     when FLIP_270_TYPE
       commands << "turnleft"
+
+      update_current_pos!(character_type)
       commands += go_to(target_x, target_y, pos, character)
     end
 
     puts commands.join(",")
+  end
+
+  def filter_character(character_type)
+    # character_type = {
+    #   rotate: pos[:type],
+    #   character_type: character
+    # }
+    case
+    when character_type[:character_type] == L && character_type[:character_type][:rotate] == FLIP_90_TYPE
+      @current_character
+    else
+      @game_matrix.normalize_character(character_type) || @current_character
+    end
   end
 
   def find_suitable_pos(current_map, character, sign)
