@@ -1,19 +1,20 @@
 class GameMatrix
-  def matrix_after_land(original_matrix, character_matrix, land_pos)
+  def matrix_after_land(original_matrix, character_matrix, land_pos, debug = false)
+    binding.pry if debug
+
+    # while character_matrix[character_matrix.size - 1].all? {|x| x.zero? }
+    #   character_matrix = move_to_bottom(character_matrix)
+    # end
 
     matrix_size = [character_matrix.first.size, character_matrix.size]
-# binding.pry
-    while character_matrix[character_matrix.size - 1].all? {|x| x.zero? }
-      character_matrix = move_to_bottom(character_matrix)
-    end
 
-    while character_matrix.all? {|x| x[0].zero? }
-      character_matrix = move_to_left(character_matrix)
-    end
+    # while character_matrix.all? {|x| x[0].zero? }
+    #   character_matrix = move_to_left(character_matrix)
+    # end
 
-    while character_matrix.all? {|x| x[character_matrix.first.size - 1].zero? }
-      character_matrix = move_to_right(character_matrix)
-    end
+    # while character_matrix.all? {|x| x[character_matrix.first.size - 1].zero? }
+    #   character_matrix = move_to_right(character_matrix)
+    # end
 
     small_original_matrix = Matrix[*build_matrix_from_start_point(original_matrix, land_pos, matrix_size)]
     character_matrix = Matrix[*(character_matrix)]
@@ -115,12 +116,6 @@ class GameMatrix
         check_x = max_origin_width - x - size_x
         check_y = max_origin_height - y - size_y
           result << [check_x, check_y] if check_x >= 0 && check_y >= 0
-
-        # if check_y == max_origin_height - size_y
-        #   result << [check_x, check_y] if check_x + size_x <= max_origin_width && check_x >= 0 && check_y >= 0
-        # elsif check_y < max_origin_height && original_matrix[check_y + 1].all? {|x| x.zero? }
-        #   result << [check_x, check_y] if check_x + size_x <= max_origin_width && check_y + size_y <= max_origin_height && check_x >= 0 && check_y >= 0
-        # end
       end
     end
 
@@ -179,16 +174,25 @@ class GameMatrix
     results = {}
 
     checks.each do |check|
-      smaller_matrix = Matrix[*build_matrix_from_start_point(original_matrix, check, matrix_size)]
+
+      update_correct_y = if character_matrix.size == character_matrix.first.size || character_matrix.size > character_matrix.first.size
+                     check
+                   else
+                     current_y = check[1]
+                     check[1] = current_y + (character_matrix.size - character_matrix.first.size).abs
+                     check
+                   end
+
+      smaller_matrix = Matrix[*build_matrix_from_start_point(original_matrix, update_correct_y, matrix_size)]
       new_matrix = Matrix[*character_matrix] + normalize_matrix(smaller_matrix.to_a)
 
-      results[check.join(",")] = caculate_score(original_matrix, character_matrix, check) + bonus(original_matrix, character_matrix, check) if valid_matrix?(new_matrix)
+      results[check.join(",")] = caculate_score(original_matrix, character_matrix, update_correct_y) + bonus(original_matrix, character_matrix, update_correct_y) if valid_matrix?(new_matrix)
     end
 
     binding.pry if ENV['DEBUG']
-    # results.sort_by(&:last).last
+    results.sort_by(&:last).last
 
-    choose_best(results.sort_by(&:last), original_matrix, character_matrix)
+    # choose_best(results.sort_by(&:last), original_matrix, character_matrix)
   end
 
   def normalize_character(character_type)
@@ -441,7 +445,7 @@ class GameMatrix
 
   def build_matrix_from_start_point(original_matrix, start_point, matrix_size)
     # example start point [0,1] and matrix_size [2,3]
-
+    
     result = Array.new(matrix_size.last) { Array.new(matrix_size.first)  }
 
     start_point_x, start_point_y = start_point
