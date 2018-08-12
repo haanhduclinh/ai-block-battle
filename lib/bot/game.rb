@@ -41,10 +41,34 @@ class Game
     end
   end
 
-  def go_to(x, y, special = false)
-    # special ability to turnleft or turn right at last line
-    commands = []
+  def go_to(x, y, pos, character)
+    # {:type=>1, :pos=>["[0, 2]", 68]}
+    # NORMAL_TYPE = 0
+    # FLIP_90_TYPE = 1
+    # FLIP_180_TYPE = 2
+    # FLIP_270_TYPE = 3
+
     current_pos_x, current_pos_y = @state.this_piece_position.split(",").map(&:to_i)
+
+    if character == I && pos[:type] == FLIP_90_TYPE && current_pos_x > x
+      x -= 0
+    elsif character == I && pos[:type] == FLIP_90_TYPE && current_pos_x < x
+      x += 1
+    elsif character == I && pos[:type] == FLIP_270_TYPE && current_pos_x > x
+      x -= 1
+    elsif character == I && pos[:type] == FLIP_270_TYPE && current_pos_x < x
+      x += 1
+    elsif character == L && pos[:type] == FLIP_90_TYPE && current_pos_x > x
+      x -= 1
+    elsif character == J && pos[:type] == FLIP_90_TYPE && current_pos_x > x
+      x -= 1
+    elsif character == T && pos[:type] == FLIP_90_TYPE && current_pos_x < x
+      x += 1
+    elsif character == T && pos[:type] == FLIP_90_TYPE && current_pos_x > x
+      x -= 1
+    end
+
+    commands = []
 
     field_height = @state.settings.field_height.to_i - 1
     field_width = @state.settings.field_width.to_i - 1
@@ -77,23 +101,23 @@ class Game
 
   def do_action(pos, character)
     # {:type=>1, :pos=>["[0, 2]", 68]}
-# binding.pry
+
     commands = []
     target_x, target_y = pos[:pos].first.split(",").map(&:to_i)
 
     case pos[:type]
     when NORMAL_TYPE
-      commands += go_to(target_x, target_y)
+      commands += go_to(target_x, target_y, pos, character)
     when FLIP_90_TYPE
       commands << "turnright"
-      commands += go_to(target_x, target_y)
+      commands += go_to(target_x, target_y, pos, character)
     when FLIP_180_TYPE
       commands << "turnright"
       commands << "turnright"
-      commands += go_to(target_x, target_y)
+      commands += go_to(target_x, target_y, pos, character)
     when FLIP_270_TYPE
       commands << "turnleft"
-      commands += go_to(target_x, target_y)
+      commands += go_to(target_x, target_y, pos, character)
     end
 
     puts commands.join(",")
@@ -111,6 +135,8 @@ class Game
     result << flip_270_progress(current_map, character, sign)
 
     result
+
+    # binding.pry
   end
 
   def normal_progress(current_map, character, sign)

@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-require 'pry' if ENV['DEBUG']
+require 'pry'
 require_relative 'lib/bot/constant_define'
 require_relative 'lib/bot/game_matrix'
 require_relative 'lib/bot/flip'

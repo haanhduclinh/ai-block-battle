@@ -108,11 +108,18 @@ class GameMatrix
     result = []
     max_origin_width = original_matrix.first.size
     max_origin_height = original_matrix.size
+    # size_x = 2
+    # size_y = 3
+# check_x = 8
+# check_y = 17
+# x = 0
+# y = 0
 
     (0..max_origin_height).each do |y|
       (0..max_origin_width).each do |x|
         check_x = max_origin_width - x - size_x
         check_y = max_origin_height - y - size_y
+          next if max_origin_height[check_x][check_y].zero? && !(check_y..0).all? {|col| original_matrix[col][check_x].zero? }
           result << [check_x, check_y] if check_x >= 0 && check_y >= 0
       end
     end
@@ -161,10 +168,10 @@ class GameMatrix
     #   character_type: sign
     # }
 
+    character_matrix = normalize_character(character_type) || character_matrix
+
     size_x = character_matrix.first.size
     size_y = character_matrix.size
-
-    character_matrix = normalize_character(character_type) || character_matrix
 
     matrix_size = [character_matrix.first.size, character_matrix.size]
 
@@ -173,13 +180,7 @@ class GameMatrix
 
     checks.each do |check|
 
-      update_correct_y = if character_matrix.size == character_matrix.first.size || character_matrix.size > character_matrix.first.size
-                     check
-                   else
-                     current_y = check[1]
-                     check[1] = current_y + (character_matrix.size - character_matrix.first.size).abs
-                     check
-                   end
+      update_correct_y = check
 
       smaller_matrix = Matrix[*build_matrix_from_start_point(original_matrix, update_correct_y, matrix_size)]
       new_matrix = Matrix[*character_matrix] + normalize_matrix(smaller_matrix.to_a)
