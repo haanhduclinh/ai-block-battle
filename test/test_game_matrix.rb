@@ -7,18 +7,69 @@ class TestGameMatrix < Test::Unit::TestCase
 
   def setup
     @matrix = GameMatrix.new
+    @start_matrix = [
+      [0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    ]
+    @landing_matrix = [
+      [0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 2, 2, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 2, 2, 0, 0, 0, 0],
+    ]
+    @character_l = [
+      [0, 0, 1],
+      [1, 1, 1],
+      [0, 0, 0]
+    ]
+    @character_l_rotated = [
+      [1, 0, 0],
+      [1, 0, 0],
+      [1, 1, 0]
+    ]
   end
 
   def test_build_matrix_from_start_point
-    input_matrix = [
-      [0, 0, 0, 0],
-      [0, 1, 0, 0],
-      [0, 0, 0, 0],
-      [1, 0, 0, 0]
+    response = @matrix.build_matrix_from_start_point(@landing_matrix, [2, 17], [3, 3])
+    expect = [
+      [0, 0, 0],
+      [0, 2, 2],
+      [0, 0, 2]
     ]
-
-    response = @matrix.build_matrix_from_start_point(input_matrix, [0,1], [2,2])
-    expect = [[0, 0], [0, 1]]
     assert_equal(response, expect, "not same")
   end
 
@@ -58,28 +109,32 @@ class TestGameMatrix < Test::Unit::TestCase
   end
 
   def test_matrix_after_land
-    input_matrix = [
-      [0, 0, 0, 0],
-      [0, 1, 0, 0],
-      [0, 0, 0, 0],
-      [0, 0, 0, 0]
-    ]
-
-    character_matrix = [
-      [1, 1],
-      [1, 1]
-    ]
-
     expected_array = [
-      [0, 0, 0, 0],
-      [0, 1, 0, 0],
-      [0, 0, 1, 1],
-      [0, 0, 1, 1]
+      [0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 1, 0, 2, 2, 0, 0, 0, 0, 0],
+      [0, 1, 1, 0, 2, 2, 0, 0, 0, 0],
     ]
 
-    land_pos = [2, 2]
+    land_pos = [1, 17]
 
-    response = @matrix.matrix_after_land(input_matrix, character_matrix, land_pos)
+    response = @matrix.matrix_after_land(@landing_matrix, @character_l_rotated, land_pos)
     assert_equal(response, expected_array, "it should same")
   end
 
@@ -120,6 +175,24 @@ class TestGameMatrix < Test::Unit::TestCase
       "left", "left", "down", "right"
     ]
     response = @matrix.find_path(current_post, target, original_matrix, character_matrix)
+    assert_equal(response, expect, "it should be equal")
+  end
+
+  def test_caculate_score
+    current_post = [3, -1]
+    land_pos = [1, 17]
+    expect = 236
+    
+    response = @matrix.caculate_score(@landing_matrix, @character_l_rotated, land_pos)
+    assert_equal(response, expect, "it should be equal")
+
+  end
+
+  def test_caculate_score_on_map
+    
+    response = @matrix.caculate_score_on_map(@landing_matrix)
+    expect = 159
+
     assert_equal(response, expect, "it should be equal")
   end
 end
