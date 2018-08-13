@@ -461,10 +461,10 @@ class GameMatrix
     (0..max_height).each do |y|
       (0..max_width).each do |x|
         arr[y][x] = if matrix[y][x].zero?
-                      0
-                    else
-                      1
-                    end
+          0
+        else
+          1
+        end
       end
     end
 
@@ -502,8 +502,8 @@ class GameMatrix
   def valid_matrix?(matrix)
     # can not have sum more than 2
     response = matrix.index do |e|
-                e > 1
-              end
+      e > 1
+    end
 
     !response
   end
