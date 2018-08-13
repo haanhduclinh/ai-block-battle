@@ -105,8 +105,9 @@ class Game
   def special_move(x, y, character_matrix)
   end
 
-  def update_current_pos!(character_type)
+  def update_current_pos!(character_type, pos)
     current_x, current_y = @state.this_piece_position.split(",").map(&:to_i)
+    target_x, target_y = pos
 
     case
     when character_type[:character_type] == T && character_type[:rotate] == FLIP_90_TYPE
@@ -120,7 +121,7 @@ class Game
     when character_type[:character_type] == I && character_type[:rotate] == FLIP_90_TYPE
       current_x += 2
     when character_type[:character_type] == I && character_type[:rotate] == FLIP_270_TYPE
-      current_x += 2
+      current_x += 1
     end
 
     @state.this_piece_position = [current_x, current_y].join(",")
@@ -150,18 +151,18 @@ class Game
     when FLIP_90_TYPE
       commands << "turnright"
 
-      update_current_pos!(character_type)
+      update_current_pos!(character_type,[target_x, target_y])
       commands += go_to(target_x, target_y, pos, character)
     when FLIP_180_TYPE
       commands << "turnright"
       commands << "turnright"
 
-      update_current_pos!(character_type)
+      update_current_pos!(character_type,[target_x, target_y])
       commands += go_to(target_x, target_y, pos, character)
     when FLIP_270_TYPE
       commands << "turnleft"
 
-      update_current_pos!(character_type)
+      update_current_pos!(character_type,[target_x, target_y])
       commands += go_to(target_x, target_y, pos, character)
     end
 
@@ -182,6 +183,8 @@ class Game
   end
 
   def find_suitable_pos(current_map, character, sign)
+    bugs_characters = [I]
+
     result = []
 
     result << normal_progress(current_map, character, sign)
@@ -190,11 +193,13 @@ class Game
 
     result << flip_180_progress(current_map, character, sign)
 
-    result << flip_270_progress(current_map, character, sign)
+    unless bugs_characters.include?(sign)
+      # bug when I flip 270
+      result << flip_270_progress(current_map, character, sign)
+    end
 
     result
 
-    # binding.pry
   end
 
   def normal_progress(current_map, character, sign)

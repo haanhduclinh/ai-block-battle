@@ -1,18 +1,6 @@
 class GameMatrix
   def matrix_after_land(original_matrix, character_matrix, land_pos)
-    # while character_matrix[character_matrix.size - 1].all? {|x| x.zero? }
-    #   character_matrix = move_to_bottom(character_matrix)
-    # end
-
     matrix_size = [character_matrix.first.size, character_matrix.size]
-
-    # while character_matrix.all? {|x| x[0].zero? }
-    #   character_matrix = move_to_left(character_matrix)
-    # end
-
-    # while character_matrix.all? {|x| x[character_matrix.first.size - 1].zero? }
-    #   character_matrix = move_to_right(character_matrix)
-    # end
 
     small_original_matrix = Matrix[*build_matrix_from_start_point(original_matrix, land_pos, matrix_size)]
     character_matrix = Matrix[*(character_matrix)]
@@ -102,19 +90,21 @@ class GameMatrix
     result
   end
 
-  def divide_to_start_point(original_matrix, size_x, size_y)
+  def divide_to_start_point(original_matrix, pos)
     # example separate 4x4 -> 2x2 -> It will return start poin of smaller matrix
     # todo enhance select better position
+
     result = []
     max_origin_width = original_matrix.first.size
     max_origin_height = original_matrix.size
+    size_x, size_y = pos
 
     (0..max_origin_height).each do |y|
       (0..max_origin_width).each do |x|
         check_x = max_origin_width - x - size_x
         check_y = max_origin_height - y - size_y
-          next if max_origin_height[check_x][check_y].zero? && !(check_y..0).all? {|col| original_matrix[col][check_x].zero? }
-          result << [check_x, check_y] if check_x >= 0 && check_y >= 0
+          next if !(check_x >= 0) && !(check_y >= 0) && max_origin_height[check_x][check_y].zero? && !(check_y..0).any? {|col| !original_matrix[col][check_x].zero? }
+          result << [check_x, check_y]
       end
     end
 
@@ -163,13 +153,12 @@ class GameMatrix
     # }
 
     character_matrix = normalize_character(character_type) || character_matrix
-
     size_x = character_matrix.first.size
     size_y = character_matrix.size
 
     matrix_size = [character_matrix.first.size, character_matrix.size]
 
-    checks = divide_to_start_point(original_matrix, size_x, size_y)
+    checks = divide_to_start_point(original_matrix, [size_x, size_y])
     results = {}
 
     checks.each do |check|
@@ -183,7 +172,7 @@ class GameMatrix
     end
 
     binding.pry if ENV['DEBUG']
-    choose_best(results.sort_by(&:last).last(10), original_matrix, character_matrix)
+    choose_best(results.sort_by(&:last).last(20), original_matrix, character_matrix)
   end
 
   def normalize_character(character_type)
